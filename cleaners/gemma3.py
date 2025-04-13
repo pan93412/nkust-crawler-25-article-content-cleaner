@@ -42,7 +42,7 @@ Do not translate or modify the meaning of the text."""
 
 class Gemma3Cleaner(Cleaner):
     def __init__(self):
-        self.lmstudio_client = lmstudio.AsyncClient(os.getenv("LMSTUDIO_API_HOST"))
+        self.construct_client = lambda: lmstudio.AsyncClient(os.getenv("LMSTUDIO_API_HOST"))
 
     async def clean_article(
         self, article: ArticleMongoModel
@@ -55,7 +55,7 @@ class Gemma3Cleaner(Cleaner):
 
         logging.debug(f"Cleaning article {article['_id']}: {article['content']}")
 
-        async with self.lmstudio_client as client:
+        async with self.construct_client() as client:
             llm = await client.llm.model("gemma-3-12b-it")
             response = await llm.respond(
                 chat,

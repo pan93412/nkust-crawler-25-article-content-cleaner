@@ -3,7 +3,7 @@ from pymongo import AsyncMongoClient
 from pymongo.asynchronous.collection import AsyncCollection
 
 from cleaners.cleaner import Cleaner
-from exceptions import ArticleNotFound, CleanedArticleNotFound
+from exceptions import ArticleNotFound
 from models import ArticleMongoModel, CleanedArticleMongoModel
 
 
