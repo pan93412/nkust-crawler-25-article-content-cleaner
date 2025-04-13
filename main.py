@@ -27,9 +27,23 @@ async def main():
     cleaner = Gemma3Cleaner()
 
     processor = CleanedArticleProcessor(mongo_client, cleaner, args.platform)
-    cleaned_article = await processor.clean_article(args.article_id)
 
-    print(cleaned_article)
+    cleaned_article = await processor.get_cleaned_article(args.article_id)
+    if cleaned_article:
+        logging.info(f"Article {args.article_id} already cleaned")
+        print(cleaned_article)
+        return
+
+    try:
+        await processor.clean_article(args.article_id)
+    except Exception as e:
+        logging.error(f"Error cleaning article {args.article_id}: {e}")
+        raise e
+    
+    cleaned_article = await processor.get_cleaned_article(args.article_id)
+    if cleaned_article:
+        logging.info(f"Article {args.article_id} cleaned")
+        print(cleaned_article)
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ class CleanedArticleProcessor:
         self.cleaner = cleaner
         self.platform = platform
 
-    async def clean_article(self, article_id: str) -> CleanedArticleMongoModel:
+    async def clean_article(self, article_id: str) -> None:
         platform_database = self.mongo_client[self.platform]
         collection: AsyncCollection[ArticleMongoModel] = platform_database["articles"]
         cleaned_collection = platform_database["articles_cleaned"]
@@ -28,14 +28,10 @@ class CleanedArticleProcessor:
         cleaned_article = await self.cleaner.clean_article(article)
         await cleaned_collection.insert_one(cleaned_article)
 
-        return cleaned_article
 
-    async def get_cleaned_article(self, article_id: str) -> CleanedArticleMongoModel:
+    async def get_cleaned_article(self, article_id: str) -> CleanedArticleMongoModel | None:
         platform_database = self.mongo_client[self.platform]
         cleaned_collection = platform_database["articles_cleaned"]
 
         cleaned_article = await cleaned_collection.find_one({"article_id": article_id})
-        if not cleaned_article:
-            raise CleanedArticleNotFound(article_id)
-
         return cleaned_article
