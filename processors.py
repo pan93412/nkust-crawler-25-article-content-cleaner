@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from pymongo import AsyncMongoClient
 from pymongo.asynchronous.collection import AsyncCollection
 
@@ -25,7 +26,7 @@ class CleanedArticleProcessor:
 
         assert "_id" in article, "Article must have an _id"
 
-        logging.info(f"Cleaning article {article_id} ({article['_id']}")
+        logging.info(f"Cleaning article {article_id} ({article['_id']})")
         cleaned_article = await self.cleaner.clean_article(article)
 
         await cleaned_collection.insert_one(cleaned_article)
@@ -42,16 +43,17 @@ class CleanedArticleProcessor:
         platform_database = self.mongo_client[self.platform]
         collection: AsyncCollection[ArticleMongoModel] = platform_database["articles"]
         
-        tasks = []
+        semaphore = asyncio.Semaphore(int(os.getenv("CLEANER_CONCURRENCY", 10)))
 
-        async for article in collection.find():
-            assert "_id" in article, "Article must have an _id"
-
-            cleaned_article = await self.get_cleaned_article(article["article_id"])
+        async def clean_article_with_semaphore(article_id: str) -> None:
+            # check if article is already cleaned
+            cleaned_article = await self.get_cleaned_article(article_id)
             if cleaned_article:
-                logging.info(f"Article {article['article_id']} already cleaned")
-                continue
+                logging.info(f"Article {article_id} already cleaned")
+                return
 
-            tasks.append(self.clean_article(article["article_id"]))
+            async with semaphore:
+                await self.clean_article(article_id)
 
+        tasks = [clean_article_with_semaphore(article["article_id"]) async for article in collection.find()]
         await asyncio.gather(*tasks)
