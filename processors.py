@@ -18,7 +18,9 @@ class CleanedArticleProcessor:
     async def clean_article(self, article_id: str) -> None:
         platform_database = self.mongo_client[self.platform]
         collection: AsyncCollection[ArticleMongoModel] = platform_database["articles"]
-        cleaned_collection: AsyncCollection[CleanedArticleMongoModel] = platform_database["cleaned_articles"]
+        cleaned_collection: AsyncCollection[CleanedArticleMongoModel] = (
+            platform_database["cleaned_articles"]
+        )
 
         article = await collection.find_one({"article_id": article_id})
         if not article:
@@ -31,18 +33,31 @@ class CleanedArticleProcessor:
 
         await cleaned_collection.insert_one(cleaned_article)
 
-
-    async def get_cleaned_article(self, article_id: str) -> CleanedArticleMongoModel | None:
+    async def get_cleaned_article(
+        self, article_id: str
+    ) -> CleanedArticleMongoModel | None:
         platform_database = self.mongo_client[self.platform]
-        cleaned_collection: AsyncCollection[CleanedArticleMongoModel] = platform_database["cleaned_articles"]
 
-        cleaned_article = await cleaned_collection.find_one({"article_id": article_id})
+        article_collection: AsyncCollection[ArticleMongoModel] = platform_database[
+            "articles"
+        ]
+        cleaned_collection: AsyncCollection[CleanedArticleMongoModel] = (
+            platform_database["cleaned_articles"]
+        )
+
+        article = await article_collection.find_one({"article_id": article_id})
+        if not article:
+            raise ArticleNotFound(article_id)
+
+        cleaned_article = await cleaned_collection.find_one(
+            {"article_id": article["_id"]}
+        )
         return cleaned_article
 
     async def clean_all_articles(self) -> None:
         platform_database = self.mongo_client[self.platform]
         collection: AsyncCollection[ArticleMongoModel] = platform_database["articles"]
-        
+
         semaphore = asyncio.Semaphore(int(os.getenv("CLEANER_CONCURRENCY", 10)))
 
         async def clean_article_with_semaphore(article_id: str) -> None:
@@ -55,5 +70,8 @@ class CleanedArticleProcessor:
             async with semaphore:
                 await self.clean_article(article_id)
 
-        tasks = [clean_article_with_semaphore(article["article_id"]) async for article in collection.find()]
+        tasks = [
+            clean_article_with_semaphore(article["article_id"])
+            async for article in collection.find()
+        ]
         await asyncio.gather(*tasks)
