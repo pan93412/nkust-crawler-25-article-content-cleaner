@@ -56,7 +56,7 @@ class Gemma3Cleaner(Cleaner):
         logging.debug(f"Cleaning article {article['_id']}: {article['content']}")
 
         async with self.construct_client() as client:
-            llm = await client.llm.model("gemma-3-12b-it")
+            llm = await client.llm.model("gemma-3-4b-it")
             response = await llm.respond(
                 chat,
                 config=lmstudio.LlmPredictionConfig(
