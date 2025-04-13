@@ -39,11 +39,14 @@ SYSTEM_PROMPT = """Your task is to clean and format the provided text by:
 Please provide the cleaned text while maintaining its original meaning and essential information.
 Do not translate or modify the meaning of the text."""
 
+
 class Gemma3Cleaner(Cleaner):
     def __init__(self):
         self.lmstudio_client = lmstudio.AsyncClient(os.getenv("LMSTUDIO_API_HOST"))
 
-    async def clean_article(self, article: ArticleMongoModel) -> CleanedArticleMongoModel:
+    async def clean_article(
+        self, article: ArticleMongoModel
+    ) -> CleanedArticleMongoModel:
         assert "_id" in article, "Article must have an _id"
 
         chat = Chat()
@@ -54,13 +57,18 @@ class Gemma3Cleaner(Cleaner):
 
         async with self.lmstudio_client as client:
             llm = await client.llm.model("gemma-3-12b-it")
-            response = await llm.respond(chat, config=lmstudio.LlmPredictionConfig(
-                temperature=0.3,
-                top_k_sampling=100,
-                top_p_sampling=0.95,
-            ))
+            response = await llm.respond(
+                chat,
+                config=lmstudio.LlmPredictionConfig(
+                    temperature=0.3,
+                    top_k_sampling=100,
+                    top_p_sampling=0.95,
+                ),
+            )
 
-        logging.debug(f"Cleaned article {article['_id']} with {llm.identifier}: {response.content}")
+        logging.debug(
+            f"Cleaned article {article['_id']} with {llm.identifier}: {response.content}"
+        )
 
         return CleanedArticleMongoModel(
             article_id=article["_id"],

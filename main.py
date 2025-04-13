@@ -8,7 +8,9 @@ from cleaners.gemma3 import Gemma3Cleaner
 from processors import CleanedArticleProcessor
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 def get_mongo_client() -> AsyncMongoClient:

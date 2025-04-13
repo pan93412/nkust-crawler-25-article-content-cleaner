@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import NotRequired, TypedDict
 from bson import ObjectId
 
+
 class ArticleMongoModel(TypedDict):
     _id: NotRequired[ObjectId]
     article_id: str

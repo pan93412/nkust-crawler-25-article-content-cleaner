@@ -29,7 +29,7 @@ class CleanedArticleProcessor:
         await cleaned_collection.insert_one(cleaned_article)
 
         return cleaned_article
-    
+
     async def get_cleaned_article(self, article_id: str) -> CleanedArticleMongoModel:
         platform_database = self.mongo_client[self.platform]
         cleaned_collection = platform_database["articles_cleaned"]
