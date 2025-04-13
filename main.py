@@ -20,13 +20,18 @@ def get_mongo_client() -> AsyncMongoClient:
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--platform", type=str, required=True)
-    parser.add_argument("--article-id", type=str, required=True)
+    parser.add_argument("--article-id", type=str, required=False)
+    parser.add_argument("--all-articles", action="store_true", default=False)
     args = parser.parse_args()
 
     mongo_client = get_mongo_client()
     cleaner = Gemma3Cleaner()
 
     processor = CleanedArticleProcessor(mongo_client, cleaner, args.platform)
+
+    if args.all_articles:
+        await processor.clean_all_articles()
+        return
 
     cleaned_article = await processor.get_cleaned_article(args.article_id)
     if cleaned_article:
