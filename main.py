@@ -4,7 +4,7 @@ import logging
 import os
 from pymongo import AsyncMongoClient
 
-from cleaners.gemma3 import Gemma3Cleaner
+from cleaners.gemini import GeminiCleaner
 from processors import CleanedArticleProcessor
 
 
@@ -25,7 +25,7 @@ async def main():
     args = parser.parse_args()
 
     mongo_client = get_mongo_client()
-    cleaner = Gemma3Cleaner()
+    cleaner = GeminiCleaner()
 
     processor = CleanedArticleProcessor(mongo_client, cleaner, args.platform)
 
@@ -44,7 +44,7 @@ async def main():
     except Exception as e:
         logging.error(f"Error cleaning article {args.article_id}: {e}")
         raise e
-    
+
     cleaned_article = await processor.get_cleaned_article(args.article_id)
     if cleaned_article:
         logging.info(f"Article {args.article_id} cleaned")
