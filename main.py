@@ -4,7 +4,7 @@ import logging
 import os
 from pymongo import AsyncMongoClient
 
-from cleaners.gemini import GeminiCleaner
+from cleaners.basic import BasicCleaner
 from processors import CleanedArticleProcessor
 
 
@@ -25,7 +25,7 @@ async def main():
     args = parser.parse_args()
 
     mongo_client = get_mongo_client()
-    cleaner = GeminiCleaner()
+    cleaner = BasicCleaner()
 
     processor = CleanedArticleProcessor(mongo_client, cleaner, args.platform)
 
