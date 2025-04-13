@@ -49,8 +49,10 @@ class CleanedArticleProcessor:
         if not article:
             raise ArticleNotFound(article_id)
 
+        assert "_id" in article, "Article must have an _id"
+
         cleaned_article = await cleaned_collection.find_one(
-            {"article_id": article["_id"]}
+            {"article_id": article["_id"]}, sort=[("created_at", -1)]
         )
         return cleaned_article
 
